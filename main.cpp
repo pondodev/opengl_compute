@@ -41,21 +41,19 @@ int main() {
 
     #pragma endregion
 
-    Shader visual_shader( "shader.vert", "shader.frag" );
-    Compute compute_shader( "shader.compute", glm::uvec2( 10, 1 ) );
+    #pragma region compute shader setup
 
-    // TODO: temp test stuff, remove when testing done
+    Compute compute_shader( "shader.comp", glm::uvec2( 10, 1 ) );
+
     compute_shader.use();
-    compute_shader.dispatch();
-    compute_shader.wait();
+    float values[ 10 ] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    compute_shader.set_values( values );
 
-    float* compute_data;
-    glGetTexImage( GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, compute_data );
-    for ( int i = 0; i < 10; i++ ) {
-        std::cout << "data: " << compute_data[ i ] << std::endl;
-    }
+    #pragma endregion
 
     #pragma region vertex data
+
+    Shader visual_shader( "shader.vert", "shader.frag" );
 
     // TODO: refactor into a generic call that renders the tris in a batch
     // TODO: supply MVP matrices for proper transforms
@@ -97,6 +95,17 @@ int main() {
     while ( !glfwWindowShouldClose( window ) ) {
         // input
         process_input( window );
+
+        // update
+        compute_shader.use();
+        compute_shader.dispatch();
+        compute_shader.wait();
+
+        auto data = compute_shader.get_values();
+        for ( auto d : data ) {
+            std::cout << d << " ";
+        }
+        std::cout << std::endl;
 
         // rendering
         glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
