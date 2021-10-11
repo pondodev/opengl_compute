@@ -2,6 +2,7 @@
 #define COMPUTE_H
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 
 #include <string>
 #include <fstream>
@@ -11,8 +12,11 @@
 class Compute {
     public:
     unsigned int id;
+    unsigned int out_tex;
 
-    Compute( const char* path ) {
+    Compute( const char* path, glm::uvec2 size ) {
+        work_size = size;
+
         // read in shader code
         std::string compute_code;
         std::ifstream file;
@@ -62,15 +66,46 @@ class Compute {
 
         // cleanup
         glDeleteShader( shader );
+
+        // create input/output textures
+        glGenTextures( 1, &out_tex );
+        glActiveTexture( GL_TEXTURE0 );
+        glBindTexture( GL_TEXTURE_2D, out_tex );
+
+        // i cant imagine we would need this because we shouldnt ever
+        // render this texture. guess we'll see huh
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+
+        // create empty texture
+        float values[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_R32F, size.x, size.y, 0, GL_RED, GL_FLOAT, values);
+        glBindImageTexture( 0, out_tex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F );
     }
 
     ~Compute() {
-        glad_glDeleteProgram( id );
+        glDeleteProgram( id );
     }
 
     void use() {
         glUseProgram( id );
+        glActiveTexture( GL_TEXTURE0 );
+        glBindTexture( GL_TEXTURE_2D, out_tex );
     }
+
+    void dispatch() {
+        // just keep it simple, 2d work group
+        glDispatchCompute( work_size.x, work_size.y, 1 );
+    }
+
+    void wait() {
+        glMemoryBarrier( GL_ALL_BARRIER_BITS );
+    }
+
+private:
+    glm::vec2 work_size;
 };
 
 #endif

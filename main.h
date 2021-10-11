@@ -8,6 +8,7 @@
 #include <cmath>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include "shader.h"
 #include "compute.h"

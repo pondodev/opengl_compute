@@ -42,7 +42,18 @@ int main() {
     #pragma endregion
 
     Shader visual_shader( "shader.vert", "shader.frag" );
-    Compute compute_shader( "shader.compute" );
+    Compute compute_shader( "shader.compute", glm::uvec2( 10, 1 ) );
+
+    // TODO: temp test stuff, remove when testing done
+    compute_shader.use();
+    compute_shader.dispatch();
+    compute_shader.wait();
+
+    float* compute_data;
+    glGetTexImage( GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, compute_data );
+    for ( int i = 0; i < 10; i++ ) {
+        std::cout << "data: " << compute_data[ i ] << std::endl;
+    }
 
     #pragma region vertex data
 
