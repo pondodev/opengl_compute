@@ -1,5 +1,6 @@
 #include "main.h"
 
+
 int main() {
     #pragma region glfw setup
 
@@ -39,6 +40,11 @@ int main() {
     glViewport( 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT );
     glfwSetFramebufferSizeCallback( window, framebuffer_size_callback );
 
+    #if DEBUG_ACTIVE
+    glEnable( GL_DEBUG_OUTPUT );
+    glDebugMessageCallback( gl_message_callback, 0 );
+    #endif
+
     #pragma endregion
 
     #pragma region compute shader setup
@@ -51,42 +57,10 @@ int main() {
 
     #pragma endregion
 
-    #pragma region vertex data
+    #pragma region rendering setup
 
     Shader visual_shader( "shader.vert", "shader.frag" );
-
-    // TODO: refactor into a generic call that renders the tris in a batch
-    // TODO: supply MVP matrices for proper transforms
-    // verts we will draw to screen
-    float verts[] = {
-        // positions         // colors
-        // first tri
-        -0.1f, -0.1f, 0.0f,  1.0f, 1.0f, 1.0f,
-        0.1f, -0.1f, 0.0f,   1.0f, 1.0f, 1.0f,
-        0.1f, 0.1f, 0.0f,    1.0f, 1.0f, 1.0f,
-
-        // second tri
-        -0.1f, -0.1f, 0.0f,  1.0f, 1.0f, 1.0f,
-        -0.1f, 0.1f, 0.0f,   1.0f, 1.0f, 1.0f,
-        0.1f, 0.1f, 0.0f,    1.0f, 1.0f, 1.0f
-    };
-
-    // create our vertex buffer and array objects
-    unsigned int vbo, vao;
-    glGenBuffers( 1, &vbo );
-    glGenVertexArrays( 1, &vao );
-
-    // bind the vbo and vao, send vert data for object to gpu, set up attributes on vao
-    glBindBuffer( GL_ARRAY_BUFFER, vbo );
-    glBindVertexArray( vao );
-    glBufferData( GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW );
-
-    // position attribute
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0 );
-    glEnableVertexAttribArray( 0 );
-    // color attribute
-    glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)) );
-    glEnableVertexAttribArray( 1 );
+    BatchRenderer renderer;
 
     #pragma endregion
 
@@ -107,14 +81,24 @@ int main() {
         }
         std::cout << std::endl;
 
-        // rendering
-        glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
-        glClear( GL_COLOR_BUFFER_BIT );
+        // draw
+        renderer.clear( glm::vec3( 0.1f, 0.1f, 0.1f ) );
 
-        // render quad
-        visual_shader.use();
-        glBindVertexArray( vao );
-        glDrawArrays( GL_TRIANGLES, 0, 6 );
+        auto x_offset = glm::sin( glfwGetTime() * 2 ) * 0.2;
+        renderer.add_square(
+            glm::vec2( 0.0f + x_offset, 0.0f ),
+            glm::vec3( 1.0f, 0.0f, 0.0f ),
+            0.1f );
+        renderer.add_square(
+            glm::vec2( 0.5f + x_offset, 0.5f ),
+            glm::vec3( 0.0f, 1.0f, 0.0f ),
+            0.1f );
+        renderer.add_square(
+            glm::vec2( -0.5f + x_offset, -0.5f ),
+            glm::vec3( 0.0f, 0.0f, 1.0f ),
+            0.1f );
+
+        renderer.render( &visual_shader );
 
         // poll glfw events and swap buffers
         glfwPollEvents();
@@ -124,8 +108,6 @@ int main() {
     #pragma endregion
 
     // clean up resources upon successful exit
-    glDeleteVertexArrays( 1, &vao );
-    glDeleteBuffers( 1, &vbo );
     glfwTerminate();
 
     return 0;
@@ -143,3 +125,116 @@ void process_input( GLFWwindow* window ) {
         glfwSetWindowShouldClose( window, true );
     }
 }
+
+#if DEBUG_ACTIVE
+// more information at https://www.khronos.org/opengl/wiki/Debug_Output
+void GLAPIENTRY gl_message_callback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* user_param ) {
+    // parse source
+    std::string source_name;
+    switch ( source ) {
+        case GL_DEBUG_SOURCE_API:
+            source_name = "GL_DEBUG_SOURCE_API";
+            break;
+
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+            source_name = "GL_DEBUG_SOURCE_WINDOW_SYSTEM";
+            break;
+
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:
+            source_name = "GL_DEBUG_SOURCE_SHADER_COMPILER";
+            break;
+
+        case GL_DEBUG_SOURCE_THIRD_PARTY:
+            source_name = "GL_DEBUG_SOURCE_THIRD_PARTY";
+            break;
+
+        case GL_DEBUG_SOURCE_APPLICATION:
+            source_name = "GL_DEBUG_SOURCE_APPLICATION";
+            break;
+
+        case GL_DEBUG_SOURCE_OTHER:
+            source_name = "GL_DEBUG_SOURCE_OTHER";
+            break;
+
+        default:
+            source_name = "UNKNOWN";
+            break;
+    }
+
+    // parse type
+    std::string type_name;
+    switch ( type ) {
+        case GL_DEBUG_TYPE_ERROR:
+            type_name = "GL_DEBUG_TYPE_ERROR";
+            break;
+
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+            type_name = "GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR";
+            break;
+
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+            type_name = "GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR";
+            break;
+
+        case GL_DEBUG_TYPE_PORTABILITY:
+            type_name = "GL_DEBUG_TYPE_PORTABILITY";
+            break;
+
+        case GL_DEBUG_TYPE_PERFORMANCE:
+            type_name = "GL_DEBUG_TYPE_PERFORMANCE";
+            break;
+
+        case GL_DEBUG_TYPE_MARKER:
+            type_name = "GL_DEBUG_TYPE_MARKER";
+            break;
+
+        case GL_DEBUG_TYPE_PUSH_GROUP:
+            type_name = "GL_DEBUG_TYPE_PUSH_GROUP";
+            break;
+
+        case GL_DEBUG_TYPE_POP_GROUP:
+            type_name = "GL_DEBUG_TYPE_POP_GROUP";
+            break;
+
+        case GL_DEBUG_TYPE_OTHER:
+            type_name = "GL_DEBUG_TYPE_OTHER";
+            break;
+
+        default:
+            type_name = "UNKNOWN";
+            break;
+    }
+
+    // parse severity
+    std::string severity_name;
+    switch ( severity ) {
+        case GL_DEBUG_SEVERITY_HIGH:
+            severity_name = "GL_DEBUG_SEVERITY_HIGH";
+            break;
+
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            severity_name = "GL_DEBUG_SEVERITY_MEDIUM";
+            break;
+
+        case GL_DEBUG_SEVERITY_LOW:
+            severity_name = "GL_DEBUG_SEVERITY_LOW";
+            break;
+
+        case GL_DEBUG_SEVERITY_NOTIFICATION:
+            severity_name = "GL_DEBUG_SEVERITY_NOTIFICATION";
+            break;
+
+        default:
+            severity_name = "UNKNOWN";
+            break;
+    }
+
+    // print message
+    std::cerr << "GL CALLBACK:\n";
+    std::cerr << "source: " << source_name << "\n";
+    std::cerr << "type: " << type_name << "\n";
+    std::cerr << "severity: " << severity_name << "\n";
+    std::cerr << "message: " << message << "\n";
+    std::cerr << std::endl;
+}
+#endif

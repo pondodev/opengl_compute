@@ -3,6 +3,7 @@
 
 #define WINDOW_WIDTH 500
 #define WINDOW_HEIGHT 500
+#define DEBUG_ACTIVE true
 
 #include <iostream>
 #include <cmath>
@@ -12,8 +13,13 @@
 
 #include "shader.h"
 #include "compute.h"
+#include "batch_renderer.h"
 
 void framebuffer_size_callback( GLFWwindow* window, int width, int height );
 void process_input( GLFWwindow* window );
+
+#if DEBUG_ACTIVE
+void GLAPIENTRY gl_message_callback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* user_param );
+#endif
 
 #endif
