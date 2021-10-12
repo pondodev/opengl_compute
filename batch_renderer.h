@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "shader.h"
+#include "dan_math.h"
 
 class BatchRenderer {
 public:
@@ -48,7 +49,8 @@ public:
         glClear( GL_COLOR_BUFFER_BIT );
     }
 
-    void add_square( glm::vec2 pos, glm::vec3 color, float size ) {
+    // takes in 2d ndc pos and 8-bit color
+    void add_square( glm::vec2 pos, glm::uvec3 color, float size ) {
         // top left, top right, bottom right, bottom left
         push_vert( pos.x, pos.y, color.r, color.g, color.b );
         push_vert( pos.x+size, pos.y, color.r, color.g, color.b );
@@ -95,11 +97,15 @@ private:
     unsigned int square_count;
 
     void push_vert( float x, float y, float r, float g, float b ) {
+        // coords are in ndc
+        // TODO: mvp matrix?
         vbo_data.push_back( x );
         vbo_data.push_back( y );
-        vbo_data.push_back( r );
-        vbo_data.push_back( g );
-        vbo_data.push_back( b );
+
+        // convert to 0-1 range
+        vbo_data.push_back( inverse_lerp( 0.0, 255.0f, r ) );
+        vbo_data.push_back( inverse_lerp( 0.0, 255.0f, g ) );
+        vbo_data.push_back( inverse_lerp( 0.0, 255.0f, b ) );
     }
 };
 

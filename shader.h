@@ -47,46 +47,22 @@ public:
 
         // compile shaders
         unsigned int vertex, fragment;
-        int success;
-        char info_log[ 512 ];
 
         // vertex shader
         vertex = glCreateShader( GL_VERTEX_SHADER );
         glShaderSource( vertex, 1, &v_shader_code, NULL );
         glCompileShader( vertex );
 
-        // check for compile errors
-        glGetShaderiv( vertex, GL_COMPILE_STATUS, &success );
-        if ( !success ) {
-            glGetShaderInfoLog( vertex, 512, NULL, info_log );
-            std::cerr << "vertex shader failed to compile:\n" << info_log << std::endl;
-        }
-
         // fragment shader
         fragment = glCreateShader( GL_FRAGMENT_SHADER );
         glShaderSource( fragment, 1, &f_shader_code, NULL );
         glCompileShader( fragment );
-
-        // check for compile errors
-        glGetShaderiv( fragment, GL_COMPILE_STATUS, &success );
-        if ( !success ) {
-            glGetShaderInfoLog( fragment, 512, NULL, info_log );
-            std::cerr << "fragment shader failed to compile:\n" << info_log << std::endl;
-        }
 
         // shader program
         id = glCreateProgram();
         glAttachShader( id, vertex );
         glAttachShader( id, fragment );
         glLinkProgram( id );
-
-        // check for linking errors
-        glGetProgramiv( id, GL_LINK_STATUS, &success );
-
-        if ( !success ) {
-            glGetProgramInfoLog( id, 512, NULL, info_log );
-            std::cerr << "failed to link program:\n" << info_log << std::endl;
-        }
 
         // delete shaders as they are not needed anymore
         glDeleteShader( vertex );

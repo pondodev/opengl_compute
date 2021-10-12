@@ -44,26 +44,10 @@ class Compute {
         glShaderSource( shader, 1, &c_shader_code, NULL );
         glCompileShader( shader );
 
-        // check for errors
-        int success;
-        char info_log[ 512 ];
-        glGetShaderiv( shader, GL_COMPILE_STATUS, &success );
-        if ( !success ) {
-            glGetShaderInfoLog( shader, 512, NULL, info_log );
-            std::cerr << "compute shader failed to compile:\n" << info_log << std::endl;
-        }
-
         // create program
         id = glCreateProgram();
         glAttachShader( id, shader );
         glLinkProgram( id );
-
-        // check for linking errors
-        glGetProgramiv( id, GL_LINK_STATUS, &success );
-        if ( !success ) {
-            glGetProgramInfoLog( id, 512, NULL, info_log );
-            std::cerr << "failed to link compute program:\n" << info_log << std::endl;
-        }
 
         // cleanup
         glDeleteShader( shader );

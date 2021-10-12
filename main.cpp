@@ -1,6 +1,5 @@
 #include "main.h"
 
-
 int main() {
     #pragma region glfw setup
 
@@ -16,7 +15,7 @@ int main() {
         WINDOW_HEIGHT,
         "compute shader test",
         NULL,
-        NULL);
+        NULL );
 
     // ensure creation was successful 
     if ( window == NULL ) {
@@ -87,15 +86,15 @@ int main() {
         auto x_offset = glm::sin( glfwGetTime() * 2 ) * 0.2;
         renderer.add_square(
             glm::vec2( 0.0f + x_offset, 0.0f ),
-            glm::vec3( 1.0f, 0.0f, 0.0f ),
+            glm::uvec3( 255, 0, 0 ),
             0.1f );
         renderer.add_square(
-            glm::vec2( 0.5f + x_offset, 0.5f ),
-            glm::vec3( 0.0f, 1.0f, 0.0f ),
+            glm::vec2( 0.0f + x_offset, 0.5f ),
+            glm::uvec3( 0, 255, 0 ),
             0.1f );
         renderer.add_square(
-            glm::vec2( -0.5f + x_offset, -0.5f ),
-            glm::vec3( 0.0f, 0.0f, 1.0f ),
+            glm::vec2( 0.0f + x_offset, -0.5f ),
+            glm::uvec3( 0, 0, 255 ),
             0.1f );
 
         renderer.render( &visual_shader );
