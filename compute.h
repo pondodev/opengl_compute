@@ -86,16 +86,10 @@ class Compute {
     }
 
     void set_values( float* values ) {
-        glActiveTexture( GL_TEXTURE0 );
-        glBindTexture( GL_TEXTURE_2D, out_tex );
-
         glTexImage2D( GL_TEXTURE_2D, 0, GL_R32F, work_size.x, work_size.y, 0, GL_RED, GL_FLOAT, values );
     }
 
     std::vector<float> get_values() {
-        glActiveTexture( GL_TEXTURE0 );
-        glBindTexture( GL_TEXTURE_2D, out_tex );
-
         unsigned int collection_size = work_size.x * work_size.y;
         std::vector<float> compute_data( collection_size );
         glGetTexImage( GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, compute_data.data() );

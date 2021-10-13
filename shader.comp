@@ -23,7 +23,7 @@ void main() {
     ivec2 pos = ivec2( gl_GlobalInvocationID.xy );
 
     // get value stored in the image
-    float in_val = imageLoad( out_tex, pos ).x;
+    float in_val = imageLoad( out_tex, pos ).r;
 
     // store new value in image
     imageStore( out_tex, pos, vec4( in_val + 1, 0.0, 0.0, 0.0 ) );
