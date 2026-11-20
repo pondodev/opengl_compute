@@ -6,6 +6,8 @@ fullclean: clean build run
 
 build:
 		g++ \
+		 glad.c *.cpp \
+		-I ./include/ \
 		-lglfw \
 		-lGL \
 		-lX11 \
@@ -13,8 +15,7 @@ build:
 		-lXrandr \
 		-lXi \
 		-ldl \
-		-I ./include/ \
-		-o $(executable_name) glad.c *.cpp
+		-o $(executable_name)
 
 run:
 		./$(executable_name)
